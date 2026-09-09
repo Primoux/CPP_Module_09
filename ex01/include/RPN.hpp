@@ -4,6 +4,7 @@
 #include <ostream>
 #include <stack>
 #include <list>
+#include <string>
 
 class RPN
 {

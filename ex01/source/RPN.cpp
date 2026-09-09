@@ -2,6 +2,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <iostream>
+#include <stdexcept>
 
 RPN::RPN()
 {
@@ -25,13 +26,32 @@ void RPN::push(int value)
 	this->_stackList.push(value);
 }
 
+static bool isOperator(const std::string &token)
+{
+	return token == "+" || token == "-" || token == "*" || token == "/";
+}
+
+static bool isNumber(const std::string &token)
+{
+	if (token.empty())
+		return false;
+	if (token[0] == '-' && token.size() == 1)
+		return false;
+	for (size_t i = 0; i < token.size(); ++i)
+	{
+		if (!std::isdigit(token[i]))
+			return false;
+	}
+	return true;
+}
+
 void RPN::handleInput(const std::string &input)
 {
 	std::istringstream iss(input);
 	std::string token;
 	while (iss >> token)
 	{
-		if (token == "+" || token == "-" || token == "*" || token == "/")
+		if (isOperator(token))
 		{
 			if (_stackList.size() < 2)
 			{
@@ -55,7 +75,7 @@ void RPN::handleInput(const std::string &input)
 			}
 			// std::clog << "Performed operation: " << a << " " << token << " " << b << " = " << _stackList.top() << std::endl;
 		}
-		else
+		else if (isNumber(token))
 		{
 			int value = std::atoi(token.c_str());
 			if (value == 0 && token != "0")
@@ -67,6 +87,10 @@ void RPN::handleInput(const std::string &input)
 				throw std::runtime_error("Error: Numbers greater than 10 are not allowed.");
 			}
 			push(value);
+		}
+		else
+		{
+			throw std::runtime_error("Error: Invalid token '" + token + "'.");
 		}
 	}
 }
