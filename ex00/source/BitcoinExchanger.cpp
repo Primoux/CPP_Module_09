@@ -178,7 +178,12 @@ int BitcoinExchanger::startProcessingInput(std::ifstream &file) const
 
 		std::istringstream rate_iss(rate_str);
 		double rate = 0.0;
-		if (!(rate_iss >> rate) || rate_iss.fail() || !rate_iss.eof() || rate < 0)
+		if (!(rate_iss >> rate) || rate_iss.fail() || !rate_iss.eof())
+		{
+			std::cout << "Error: bad value format => " << rate_str << std::endl;
+			continue;
+		}
+		else if (rate < 0)
 		{
 			std::cout << "Error: not a positive number => " << rate_str << std::endl;
 			continue;
