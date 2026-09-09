@@ -1,11 +1,14 @@
 # Prerequisites
 *.d
-
+btc
 # Compiled Object files
 *.slo
 *.lo
 *.o
 *.obj
+*.csv
+*.pdf
+*.txt
 
 # Precompiled Headers
 *.gch
