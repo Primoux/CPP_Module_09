@@ -193,7 +193,8 @@ int BitcoinExchanger::startProcessingInput(std::ifstream &file) const
 			std::cout << "Error: number superior than 1000 => " << rate_str << std::endl;
 			continue;
 		}
-		double result = rate * getExchangeRate(date_int);
+
+		double result = getExchangeRate(date_int);
 		if (result == -1)
 		{
 			std::cout << "Error: no database" << std::endl;
@@ -204,7 +205,7 @@ int BitcoinExchanger::startProcessingInput(std::ifstream &file) const
 			std::cout << "Error: no exchange rate available for date => " << date_str << std::endl;
 			continue;
 		}
-		std::cout << date_str << " => " << rate << " = " << result << std::endl;
+		std::cout << date_str << " => " << rate << " = " << result * rate << std::endl;
 	}
 	return 0;
 }
