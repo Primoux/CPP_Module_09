@@ -1,22 +1,22 @@
-#ifndef BITCOIN_EXCHANGER_HPP
-#define BITCOIN_EXCHANGER_HPP
+#ifndef BITCOIN_EXCHANGE_HPP
+#define BITCOIN_EXCHANGE_HPP
 
 #include <ostream>
 #include <map>
 
-class BitcoinExchanger
+class BitcoinExchange
 {
   private:
 	std::map <int , double> _db;
 
   public:
 	// CONSTRUCTOR
-	BitcoinExchanger();
-	~BitcoinExchanger();
-	BitcoinExchanger(BitcoinExchanger const &original);
+	BitcoinExchange();
+	~BitcoinExchange();
+	BitcoinExchange(BitcoinExchange const &original);
 
 	// OPERATOR
-	BitcoinExchanger &operator=(BitcoinExchanger const &other);
+	BitcoinExchange &operator=(BitcoinExchange const &other);
 	// MEMBER FUNCTION
 	void loadDatabase(void);
 	double getExchangeRate(int date) const;
@@ -24,6 +24,6 @@ class BitcoinExchanger
 	//GETTER
 	const std::map<int, double> &getDatabase() const;
 };
-std::ostream &operator<<(std::ostream &o, const BitcoinExchanger &obj);
+std::ostream &operator<<(std::ostream &o, const BitcoinExchange &obj);
 
-#endif // !BITCOIN_EXCHANGER_HPP
+#endif // !BITCOIN_EXCHANGE_HPP

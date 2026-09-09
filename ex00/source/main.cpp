@@ -9,7 +9,7 @@
 int main(int argc, char **argv)
 {
 	std::cout.precision(8);
-	if (argc != 2)
+	if (argc != 2 || std::string(argv[1]).empty())
 	{
 		std::cerr << "Usage: ./btc <input_file>" << std::endl;
 		return 2;
@@ -20,7 +20,7 @@ int main(int argc, char **argv)
 		std::cerr << "Error: could not open file " << argv[1] << std::endl;
 		return 1;
 	}
-	BitcoinExchanger exchanger;
+	BitcoinExchange exchanger;
 	try
 	{
 		exchanger.loadDatabase();
