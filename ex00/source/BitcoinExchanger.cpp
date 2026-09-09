@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+#include <cmath>
 #include <cctype>
 
 #define ERROR_INVALID_DATE -1
@@ -178,12 +179,12 @@ int BitcoinExchanger::startProcessingInput(std::ifstream &file) const
 
 		std::istringstream rate_iss(rate_str);
 		double rate = 0.0;
-		if (!(rate_iss >> rate) || rate_iss.fail() || !rate_iss.eof())
+		if (!(rate_iss >> rate) || !rate_iss.eof())
 		{
 			std::cout << "Error: bad value format => " << rate_str << std::endl;
 			continue;
 		}
-		else if (rate < 0)
+		else if (std::signbit(rate))
 		{
 			std::cout << "Error: not a positive number => " << rate_str << std::endl;
 			continue;

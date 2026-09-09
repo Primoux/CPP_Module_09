@@ -6,9 +6,7 @@ btc
 *.lo
 *.o
 *.obj
-*.csv
 *.pdf
-*.txt
 
 # Precompiled Headers
 *.gch
