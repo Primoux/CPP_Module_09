@@ -198,7 +198,7 @@ int BitcoinExchanger::startProcessingInput(std::ifstream &file) const
 		if (result == -1)
 		{
 			std::cout << "Error: no database" << std::endl;
-			continue;
+			return 1;
 		}
 		if (result == -2)
 		{
