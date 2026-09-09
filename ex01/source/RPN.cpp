@@ -2,9 +2,14 @@
 #include <sstream>
 #include <cstdlib>
 #include <iostream>
+#include <cctype>
 #include <stdexcept>
 
 RPN::RPN()
+{
+}
+
+RPN::RPN(RPN const &original) : _stackList(original._stackList)
 {
 }
 
@@ -12,7 +17,7 @@ RPN::~RPN()
 {
 }
 
-RPN &RPN::operator=(const RPN &other)
+RPN &RPN::operator=(RPN const &other)
 {
 	if (this != &other)
 	{
@@ -20,6 +25,8 @@ RPN &RPN::operator=(const RPN &other)
 	}
 	return *this;
 }
+
+
 
 void RPN::push(int value)
 {
@@ -33,13 +40,15 @@ static bool isOperator(const std::string &token)
 
 static bool isNumber(const std::string &token)
 {
+	int isNegative = 0;
+
 	if (token.empty())
 		return false;
-	if (token[0] == '-' && token.size() == 1)
-		return false;
-	for (size_t i = 0; i < token.size(); ++i)
+	if (token[0] == '-')
+		isNegative = 1;
+	for (size_t i = isNegative; i < token.size(); ++i)
 	{
-		if (!std::isdigit(token[i]))
+		if (!std::isdigit(static_cast<unsigned char>(token[i])))
 			return false;
 	}
 	return true;
@@ -82,9 +91,9 @@ void RPN::handleInput(const std::string &input)
 			{
 				throw std::runtime_error("Error: Invalid token '" + token + "'.");
 			}
-			else if (value > 10)
+			else if (value > 9)
 			{
-				throw std::runtime_error("Error: Numbers greater than 10 are not allowed.");
+				throw std::runtime_error("Error: Numbers greater than 9 are not allowed.");
 			}
 			push(value);
 		}
@@ -101,5 +110,5 @@ void RPN::result()
 	{
 		throw std::runtime_error("Error: Invalid RPN expression. Stack size is not 1.");
 	}
-	std::cout << "Result: " << _stackList.top() << std::endl;
+	std::cout << _stackList.top() << std::endl;
 }
