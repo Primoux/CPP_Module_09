@@ -1,12 +1,11 @@
-#include "BitcoinExchanger.hpp"
+#include "BitcoinExchange.hpp"
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <algorithm>
-#include <cmath>
 #include <cctype>
 
-#define ERROR_INVALID_DATE -1
+const int ERROR_INVALID_DATE =  -1;
 const std::string FILENAME = "data.csv";
 
 BitcoinExchanger::BitcoinExchanger()
@@ -119,7 +118,7 @@ void BitcoinExchanger::loadDatabase(void)
 
 		std::istringstream rate_iss(rate_str);
 		double rate = 0.0;
-		if (!(rate_iss >> rate) || rate_iss.fail() || !rate_iss.eof())
+		if (!(rate_iss >> rate) || !rate_iss.eof())
 		{
 			throw std::runtime_error("Error: invalid rate format in " + FILENAME + " for date " + date_str);
 		}
@@ -184,7 +183,7 @@ int BitcoinExchanger::startProcessingInput(std::ifstream &file) const
 			std::cout << "Error: bad value format => " << rate_str << std::endl;
 			continue;
 		}
-		else if (std::signbit(rate))
+		else if (rate < 0 || (rate == 0 && (1.0 / rate) < 0.0))
 		{
 			std::cout << "Error: not a positive number => " << rate_str << std::endl;
 			continue;
@@ -194,16 +193,18 @@ int BitcoinExchanger::startProcessingInput(std::ifstream &file) const
 			std::cout << "Error: number superior than 1000 => " << rate_str << std::endl;
 			continue;
 		}
-		try
+		double result = rate * getExchangeRate(date_int);
+		if (result == -1)
 		{
-			double result = rate * getExchangeRate(date_int);
-			std::cout << date_str << " => " << rate << " = " << result << std::endl;
-		}
-		catch (const std::exception &e)
-		{
-			std::cout << e.what() << std::endl;
+			std::cout << "Error: no database" << std::endl;
 			continue;
 		}
+		if (result == -2)
+		{
+			std::cout << "Error: no exchange rate available for date => " << date_str << std::endl;
+			continue;
+		}
+		std::cout << date_str << " => " << rate << " = " << result << std::endl;
 	}
 	return 0;
 }
@@ -224,7 +225,7 @@ double BitcoinExchanger::getExchangeRate(int date) const
 	if (it == this->_db.end())
 	{
 		if (this->_db.empty())
-			throw std::runtime_error("Error: database is empty");
+			return -1;
 		return (--it)->second;
 	}
 	else if (it->first == date)
@@ -233,7 +234,7 @@ double BitcoinExchanger::getExchangeRate(int date) const
 	}
 	else if (it == this->_db.begin())
 	{
-		throw std::runtime_error("Error: no exchange rate available for the given date or earlier");
+		return -2;
 	}
 	else
 	{
