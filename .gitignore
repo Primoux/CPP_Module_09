@@ -2,6 +2,7 @@
 *.d
 btc
 RPN
+PmergeMe
 # Compiled Object files
 *.slo
 *.lo
