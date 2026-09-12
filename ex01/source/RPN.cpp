@@ -26,8 +26,6 @@ RPN &RPN::operator=(RPN const &other)
 	return *this;
 }
 
-
-
 void RPN::push(int value)
 {
 	this->_stackList.push(value);
@@ -71,18 +69,18 @@ void RPN::handleInput(const std::string &input)
 			int a = _stackList.top();
 			_stackList.pop();
 			if (token == "+")
-				push(a + b);
+				this->push(a + b);
 			else if (token == "-")
-				push(a - b);
+				this->push(a - b);
 			else if (token == "*")
-				push(a * b);
+				this->push(a * b);
 			else if (token == "/")
 			{
 				if (b == 0)
 					throw std::runtime_error("Error: Division by zero.");
-				push(a / b);
+				this->push(a / b);
 			}
-			// std::clog << "Performed operation: " << a << " " << token << " " << b << " = " << _stackList.top() << std::endl;
+			std::clog << "Performed operation: " << a << " " << token << " " << b << " = " << _stackList.top() << std::endl;
 		}
 		else if (isNumber(token))
 		{
@@ -95,7 +93,11 @@ void RPN::handleInput(const std::string &input)
 			{
 				throw std::runtime_error("Error: Numbers greater than 9 are not allowed.");
 			}
-			push(value);
+			else if (value < 0)
+			{
+				throw std::runtime_error("Error: Numbers less than 0 are not allowed.");
+			}
+			this->push(value);
 		}
 		else
 		{
