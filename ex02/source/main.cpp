@@ -15,6 +15,7 @@ int main (int argc, char **argv)
 	try
 	{
 		pmergeMe.parseInput(argc, argv);
+		pmergeMe.start();
 	}
 	catch(const std::exception& e)
 	{
