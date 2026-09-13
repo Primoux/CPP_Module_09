@@ -108,13 +108,7 @@ void PmergeMe::sortVec(void)
 		}
 
 		if (this->_vector.size() % 2)
-		    next.push_back(this->_vector.back());
-		if (this->_vector.size() % 2 != 0)
-		{
 			aloneVec.push_back(this->_vector.back());
-			// suppression of the last element in the next vector
-			next.pop_back();
-		}
 
 		this->_vector = next;
 		debug("AFTER PAIRING", this->_vector);
