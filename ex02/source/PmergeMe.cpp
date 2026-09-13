@@ -4,6 +4,9 @@
 #include <utility>
 #include <algorithm>
 
+
+std::vector<std::vector<int> > aloneVec;
+
 PmergeMe::PmergeMe()
 {
 }
@@ -27,13 +30,15 @@ PmergeMe::~PmergeMe()
 {
 }
 
-static void debug(std::string const &title, std::vector<std::vector<int> > const &vec)
+template <typename T>
+static void debug(std::string const &title, T const &vec)
 {
 	std::cout << title << std::endl;
+	std::cout << "vec size = " << vec.size() << std::endl;
 	for (size_t j = 0; j < vec.size(); ++j)
 	{
 		std::cout << "(";
-		for (size_t k = 0; k < vec.size(); k++)
+		for (size_t k = 0; k < vec[j].size(); k++)
 		{
 			if (k != 0)
 				std::cout << ", ";
@@ -42,6 +47,22 @@ static void debug(std::string const &title, std::vector<std::vector<int> > const
 		std::cout << ") ";
 	}
 	std::cout << std::endl;
+	if (!aloneVec.empty())
+	{
+		std::cout << "Alone: ";
+		for (size_t i = 0; i < aloneVec.size(); ++i)
+		{
+			if (i != 0)
+				std::cout << ", ";
+			for (size_t j = 0; j < aloneVec[i].size(); ++j)
+			{
+				if (j != 0)
+					std::cout << ", ";
+				std::cout << "[" << aloneVec[i][j] << "]";
+			}
+		}
+		std::cout << std::endl;
+	}
 }
 
 
@@ -56,75 +77,92 @@ void PmergeMe::parseInput(int argc, char** argv)
 		{
 			throw std::invalid_argument("Invalid input: " + std::string(argv[i]));
 		}
-		input.push_back(std::vector<int>(1, value));
+		std::vector<int> vec;
+		vec.push_back(value);
+		input.push_back(vec);
 	}
 	this->_vector = input;
 	std::deque<std::vector<int> > dequeInput(input.begin(), input.end());
-	// this->_deque = dequeInput;
-	debug("Parsed input deque", this->_vector);
-	// debug("Parsed input vector", this->_vector);
+	this->_deque = dequeInput;
 }
 
 void PmergeMe::sortVec(void)
 {
+	debug("BEFORE PAIRING", this->_vector);
 	if (this->_vector.size() < 2)
 		return;
-
-	std::vector<std::vector<int> > pairs;
-	bool hisAlone = false;
-	int alone = -1;
-	// debug("DEBUG VECTOR", this->_vector);
-
-	for (size_t i = 0; i + 1 < this->_vector.size(); i += 2)
+	for (; this->_vector.size() != 1;)
 	{
-		int a = this->_vector[i][0];
-		int b = this->_vector[i + 1][0];
-		std::vector<int> pair;
+		std::vector<std::vector<int> > next;
 
-		if (a > b)
+		for (size_t i = 0; i + 1 < this->_vector.size(); i += 2)
 		{
-			pair.push_back(b);
-			pair.push_back(a);
+		    std::vector<int> a = this->_vector[i];
+		    std::vector<int> b = this->_vector[i + 1];
+
+		    if (a.back() > b.back())
+		        a.swap(b);
+
+	 	   a.insert(a.end(), b.begin(), b.end());
+	 	   next.push_back(a);
 		}
-		else
+
+		if (this->_vector.size() % 2)
+		    next.push_back(this->_vector.back());
+		if (this->_vector.size() % 2 != 0)
 		{
-			pair.push_back(a);
-			pair.push_back(b);
+			aloneVec.push_back(this->_vector.back());
+			// suppression of the last element in the next vector
+			next.pop_back();
 		}
-		pairs.push_back(pair);
+
+		this->_vector = next;
+		debug("AFTER PAIRING", this->_vector);
+
 	}
-	if (this->_vector.size() % 2 != 0)
-	{
-		hisAlone = true;
-		alone = this->_vector[this->_vector.size() - 1][0];
-		this->_vector.pop_back();
-	}
-
-	debug("AFTER PAIRING", pairs);
-
-
-	for (size_t i = 0; i + 1 < pairs.size(); i += 2)
-	{
-		int a = pairs[i].back();
-		int b = pairs[i + 1].back();
-		if (a > b)
-		{
-			std::swap_ranges(pairs[i].begin(), pairs[i].end(), pairs[i + 1].begin());
-		}
-	}
-
-	debug("FINISH ??", pairs);
-	if (hisAlone)
-		std::cout << "alone: " << alone << std::endl;
-
 }
 
-void PmergeMe::sortDeque(void)
-{
+// void PmergeMe::sortDeque(void)
+// {
+// 	debug("BEFORE PAIRING", this->_deque);
+// 	if (this->_deque.size() < 2)
+// 		return;
+// 	bool hisAlone = false;
+// 	if (this->_deque.size() % 2 != 0)
+// 	{
+// 		hisAlone = true;
+// 		alone = this->_deque[this->_deque.size() - 1][0];
+// 		this->_deque.pop_back();
+// 	}
 
-}
+// 	for (; this->_deque.size() != 1;)
+// 	{
+// 		std::deque<std::vector<int> > next;
+
+// 		for (size_t i = 0; i + 1 < this->_deque.size(); i += 2)
+// 		{
+// 		    std::vector<int> a = this->_deque[i];
+// 		    std::vector<int> b = this->_deque[i + 1];
+
+// 		    if (a.back() > b.back())
+// 		        a.swap(b);
+
+// 	 	   a.insert(a.end(), b.begin(), b.end());
+// 	 	   next.push_back(a);
+// 		}
+
+// 		if (this->_deque.size() % 2)
+// 		    next.push_back(this->_deque.back());
+
+// 		this->_deque = next;
+// 		debug("AFTER PAIRING", this->_deque);
+
+// 	}
+// }
 
 void PmergeMe::start(void)
 {
 	this->sortVec();
+	std::cout << std::endl;
+	// this->sortDeque();
 }
