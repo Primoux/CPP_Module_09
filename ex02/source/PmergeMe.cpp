@@ -50,16 +50,16 @@ static void debug(std::string const &title, T const &vec)
 	if (!aloneVec.empty())
 	{
 		std::cout << "Alone: ";
-		for (size_t i = 0; i < aloneVec.size(); ++i)
+		for (size_t j = 0; j < aloneVec.size(); ++j)
 		{
-			if (i != 0)
-				std::cout << ", ";
-			for (size_t j = 0; j < aloneVec[i].size(); ++j)
+			std::cout << "(";
+			for (size_t k = 0; k < aloneVec[j].size(); k++)
 			{
-				if (j != 0)
+				if (k != 0)
 					std::cout << ", ";
-				std::cout << "[" << aloneVec[i][j] << "]";
+				std::cout << "[" << aloneVec[j][k] << "]";
 			}
+			std::cout << ") ";
 		}
 		std::cout << std::endl;
 	}
