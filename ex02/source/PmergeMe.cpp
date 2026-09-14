@@ -65,6 +65,20 @@ static void debug(std::string const &title, T const &vec)
 	}
 }
 
+void debug(std::string const &title, std::vector<int> const &vec)
+{
+	std::cout << title << std::endl;
+	std::cout << "vec size = " << vec.size() << std::endl;
+	std::cout << "(";
+	for (size_t k = 0; k < vec.size(); k++)
+	{
+		if (k != 0)
+			std::cout << ", ";
+		std::cout << "[" << vec[k] << "]";
+	}
+	std::cout << ")" << std::endl;
+}
+
 
 void PmergeMe::parseInput(int argc, char** argv)
 {
@@ -97,11 +111,11 @@ void PmergeMe::sortVec(void)
 
 		for (size_t i = 0; i + 1 < this->_vector.size(); i += 2)
 		{
-		    std::vector<int> a = this->_vector[i];
-		    std::vector<int> b = this->_vector[i + 1];
+			std::vector<int> a = this->_vector[i];
+			std::vector<int> b = this->_vector[i + 1];
 
-		    if (a.back() > b.back())
-		        a.swap(b);
+			if (a.back() > b.back())
+				a.swap(b);
 
 	 	   a.insert(a.end(), b.begin(), b.end());
 	 	   next.push_back(a);
@@ -109,10 +123,27 @@ void PmergeMe::sortVec(void)
 
 		if (this->_vector.size() % 2)
 			aloneVec.push_back(this->_vector.back());
-
 		this->_vector = next;
 		debug("AFTER PAIRING", this->_vector);
+	}
 
+	for (size_t i = 0; i < this->_vector.size(); i++)
+	{
+
+	}
+
+	std::cout << "Size = " << this->_vector[0].size() << std::endl;
+	for (size_t i = 0; i < this->_vector.size(); ++i)
+	{
+
+		std::cout << "Pair " << i + 1 << ": ";
+		for (size_t j = 0; j < this->_vector[i].size(); ++j)
+		{
+			if (j != 0)
+				std::cout << ", ";
+			std::cout << this->_vector[i][j];
+		}
+		std::cout << std::endl;
 	}
 }
 
@@ -135,18 +166,18 @@ void PmergeMe::sortVec(void)
 
 // 		for (size_t i = 0; i + 1 < this->_deque.size(); i += 2)
 // 		{
-// 		    std::vector<int> a = this->_deque[i];
-// 		    std::vector<int> b = this->_deque[i + 1];
+// 			std::vector<int> a = this->_deque[i];
+// 			std::vector<int> b = this->_deque[i + 1];
 
-// 		    if (a.back() > b.back())
-// 		        a.swap(b);
+// 			if (a.back() > b.back())
+// 				a.swap(b);
 
 // 	 	   a.insert(a.end(), b.begin(), b.end());
 // 	 	   next.push_back(a);
 // 		}
 
 // 		if (this->_deque.size() % 2)
-// 		    next.push_back(this->_deque.back());
+// 			next.push_back(this->_deque.back());
 
 // 		this->_deque = next;
 // 		debug("AFTER PAIRING", this->_deque);
