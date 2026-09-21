@@ -42,7 +42,7 @@ static void debug(std::string const &title, T const &vec)
 		{
 			if (k != 0)
 				std::cout << ", ";
-			std::cout << "[" << vec[j][k] << "]";
+			std::cout << vec[j][k];
 		}
 		std::cout << ") ";
 	}
@@ -57,7 +57,7 @@ static void debug(std::string const &title, T const &vec)
 			{
 				if (k != 0)
 					std::cout << ", ";
-				std::cout << "[" << aloneVec[j][k] << "]";
+				std::cout << aloneVec[j][k];
 			}
 			std::cout << ") ";
 		}
@@ -127,10 +127,8 @@ void PmergeMe::sortVec(void)
 		debug("AFTER PAIRING", this->_vector);
 	}
 
-	for (size_t i = 0; i < this->_vector.size(); i++)
-	{
 
-	}
+	//idk what to do next
 
 	std::cout << "Size = " << this->_vector[0].size() << std::endl;
 	for (size_t i = 0; i < this->_vector.size(); ++i)
