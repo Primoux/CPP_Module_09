@@ -18,6 +18,8 @@ class PmergeMe {
 		void start(void);
 		void sortVec(void);
 		void sortDeque(void);
+		void mergeVec(int &recursion_depth);
+		void makePairsVec(int recursion_depth);
 };
 
 #endif
