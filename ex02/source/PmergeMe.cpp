@@ -33,9 +33,37 @@ PmergeMe::~PmergeMe()
 {
 }
 
+size_t jac(size_t depth)
+{
+	size_t current = 0;
+	size_t prev = 1;
+	size_t prevPrev = 0;
+	if (depth == 0)
+		return 0;
+	if (depth == 1)
+		return 1;
+	for (size_t i = 0; i < depth - 1; i++)
+	{
+		// std::cout << "Current = " << current << " prev = " << prev << " prevPrev = " << prevPrev << std::endl;
+		current = (prev) + 2 * (prevPrev);
+		prevPrev = prev;
+		prev = current;
+	}
+	return(current);
+}
+
 template <typename T>
 static void debug(std::string const &title, T const &vec)
 {
+#ifndef DEBUG
+      return;
+#endif
+	if (vec.empty())
+	{
+		std::cout << title << std::endl;
+		std::cout << BRED "vec is empty" RESET << std::endl;
+		return;
+	}
 	std::cout << title << std::endl;
 	std::cout << "vec size = " << vec.size() << std::endl;
 	std::cout << "vec[0] size = " << vec[0].size() << std::endl;
@@ -85,6 +113,9 @@ std::string vecToString(std::vector<int> &vec)
 
 void debug(std::string const &title, std::vector<int> const &vec)
 {
+	#ifndef DEBUG
+      return;
+	#endif
 	std::cout << title << std::endl;
 	std::cout << "vec size = " << vec.size() << std::endl;
 	std::cout << "(";
@@ -101,40 +132,50 @@ int searchSize(std::vector<std::vector<int> > &vec, size_t size)
 {
 	for (size_t i = 0; i < vec.size(); i++)
 	{
-		if (size  == vec[i].size())
-		{
-			return (size);
-		}
+		if (size == vec[i].size())
+			return (i);
 	}
-	return (0);
+	return (-1);
 }
 
 template <typename T>
-static void debug_insert(std::string const &title, T const &vec, T const &vecLooser, T const &vecWinner)
+static void getWinnerLooser(T &vec, T &vecLooser, T &vecWinner)
 {
 	size_t pairNumber = 1;
-	std::cout << title << vec[0].size() << std::endl;
 	bool winner = false;
-	for (size_t i = 0; i < vec.size(); ++i)
+	size_t i = 0;
+	for (; i < vec.size(); ++i)
 	{
-		std::cout << (winner ? "winner " : "looser ") << pairNumber << " - [";
-		for (size_t j = 0; j < vec[i].size(); ++j)
-		{
-			std::cout << vec[i][j] << (j < vec[i].size() - 1 ? " " : "");
-		}
-		std::cout << "] => " << ((!(i % 2) && pairNumber != 1) ? RED "PEND" : GREEN "MAIN")<< "\n" RESET;
+		#ifdef DEBUG
+			std::cout << (winner ? "winner " : "looser ") << pairNumber << " - [";
+			for (size_t j = 0; j < vec[i].size(); ++j)
+			{
+				std::cout << vec[i][j] << (j < vec[i].size() - 1 ? " " : "");
+			}
+			std::cout << "] => " << ((!(i % 2) && pairNumber != 1) ? RED "PEND" : GREEN "MAIN")<< "\n" RESET;
+		#endif
+		if (i == 0 || winner)
+			vecWinner.push_back(vec[i]);
+		else
+			vecLooser.push_back(vec[i]);
 		winner ^= true;
+
 		if (i % 2)
 			++pairNumber;
 	}
-	if (searchSize(aloneVec, vec[0].size()))
-	{
-		std::cout << "looser " << pairNumber << " - [" <<vecToString(aloneVec.back());
-		std::cout << "] => " << RED "PEND ALONE" RESET << std::endl;
+	int index = searchSize(aloneVec, vec.back().size());
 
+	if (index != - 1)
+	{
+		#ifdef DEBUG
+		std::cout << "looser " << pairNumber << " - [" << vecToString(aloneVec.back());
+		std::cout << "] => " << YELLOW "PEND ALONE" RESET << std::endl;
+		#endif
+		vecLooser.push_back(aloneVec.back());
 		aloneVec.pop_back();
 	}
-	std::cout << "\n\n";
+	vec.clear();
+
 }
 
 void PmergeMe::parseInput(int argc, char** argv)
@@ -171,14 +212,44 @@ void PmergeMe::mergeVec(int &recursion_depth)
 			if (a.back() > b.back())
 				a.swap(b);
 
-	 	   a.insert(a.end(), b.begin(), b.end());
-	 	   next.push_back(a);
+	 		a.insert(a.end(), b.begin(), b.end());
+	 		next.push_back(a);
 		}
 
 		if (this->_vector.size() % 2)
 			aloneVec.push_back(this->_vector.back());
 		this->_vector = next;
 		debug("INSIDE PAIRING", this->_vector);
+	}
+}
+
+template <typename T>
+void insertPend(T &main, T &pend)
+{
+	if (pend.empty())
+		return;
+
+	while (pend.size())
+	{
+		std::vector<int> elem = pend.front();
+		#ifdef DEBUG
+		std::cout << "Inserting pend: [" << vecToString(elem) << "] into main" << std::endl;
+		#endif
+		size_t lo = 0;
+		size_t hi = main.size();
+
+		while (lo < hi)
+		{
+			size_t mid = (lo + hi) / 2;
+
+			if (elem.back() > main[mid].back())
+					lo = mid + 1;
+			else
+			hi = mid;
+		}
+
+		main.insert(main.begin() + lo, pend[0]);
+		pend.erase(pend.begin());
 	}
 }
 
@@ -198,9 +269,17 @@ void PmergeMe::makePairsVec(int recursion_depth)
 		}
 		this->_vector = pairs;
 
-		debug(BRED "Inside make pairs" RESET, this->_vector);
-		//
-		debug_insert("Groups of size ", this->_vector);
+		debug(YELLOW "Inside make pairs" RESET, this->_vector);
+		std::vector<std::vector<int> > main;
+		std::vector<std::vector<int> > pend;
+		getWinnerLooser(this->_vector, pend, main);
+		debug(BGREEN "Winner" RESET, main);
+		debug(BRED "Looser" RESET, pend);
+
+		insertPend(main, pend);
+		this->_vector = main;
+		debug(YELLOW "After inserting pend" RESET, this->_vector);
+
 	}
 }
 
@@ -208,15 +287,15 @@ void PmergeMe::makePairsVec(int recursion_depth)
 
 void PmergeMe::sortVec(void)
 {
-	debug("BEFORE PAIRING", this->_vector);
+	debug(BGREEN "BEFORE PAIRING" RESET, this->_vector);
 	if (this->_vector.size() < 2)
 		return;
 	int recursion_depth = 0;
 
 	mergeVec(recursion_depth);
-	debug("--------afterMerge--------", this->_vector);
+	debug(BGREEN "--------afterMerge--------" RESET, this->_vector);
 	makePairsVec(recursion_depth);
-	debug("--------AFTER MAKING PAIRS--------", this->_vector);
+	debug(BYELLOW "--------AFTER MAKING PAIRS--------" RESET, this->_vector);
 }
 
 void PmergeMe::start(void)
