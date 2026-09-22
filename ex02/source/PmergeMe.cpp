@@ -321,14 +321,12 @@ void printStart(std::vector<std::vector<int> > &vec)
 	std::cout << "Before: ";
 	for (size_t i = 0; i < vec.size(); ++i)
 	{
-		std::cout << "(";
 		for (size_t j = 0; j < vec[i].size(); ++j)
 		{
 			std::cout << vec[i][j];
 			if (j != vec[i].size() - 1)
 				std::cout << " ";
 		}
-		std::cout << ")";
 		if (i != vec.size() - 1)
 			std::cout << " ";
 	}
@@ -340,14 +338,12 @@ void printResult(std::vector<std::vector<int> > &vec)
 	std::cout << "After: ";
 	for (size_t i = 0; i < vec.size(); ++i)
 	{
-		std::cout << "(";
 		for (size_t j = 0; j < vec[i].size(); ++j)
 		{
 			std::cout << vec[i][j];
 			if (j != vec[i].size() - 1)
 				std::cout << " ";
 		}
-		std::cout << ")";
 		if (i != vec.size() - 1)
 			std::cout << " ";
 	}
