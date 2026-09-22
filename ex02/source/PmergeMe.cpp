@@ -241,7 +241,6 @@ void createOrderJac(std::vector<std::vector<int> > &pend)
 	debug(BMAGENTA "After creating order" RESET, pend);
 }
 
-int test = 0;
 
 template <typename T>
 void insertPend(T &main, T &pend)
@@ -257,7 +256,6 @@ void insertPend(T &main, T &pend)
 		#endif
 		size_t lowerBound = 0;
 		size_t higherBound = main.size();
-		test = 0;
 		while (lowerBound < higherBound)
 		{
 			size_t mid = (lowerBound + higherBound) / 2;
@@ -266,11 +264,9 @@ void insertPend(T &main, T &pend)
 					lowerBound = mid + 1;
 			else
 			higherBound = mid;
-			test++;
 		}
 		main.insert(main.begin() + lowerBound, pend.front());
 		pend.erase(pend.begin());
-		std::cout << "test = " << test << std::endl;
 	}
 }
 
