@@ -261,9 +261,9 @@ void insertPend(T &main, T &pend)
 			size_t mid = (lowerBound + higherBound) / 2;
 
 			if (elem.back() > main[mid].back())
-					lowerBound = mid + 1;
+				lowerBound = mid + 1;
 			else
-			higherBound = mid;
+				higherBound = mid;
 		}
 		main.insert(main.begin() + lowerBound, pend.front());
 		pend.erase(pend.begin());
