@@ -4,6 +4,7 @@
 #include <vector>
 #include <deque>
 #include <cstddef>
+#include <string>
 
 class PmergeMe {
 	private:

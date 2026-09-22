@@ -55,9 +55,9 @@ size_t jac(size_t depth)
 template <typename T>
 static void debug(std::string const &title, T const &vec)
 {
-#ifndef DEBUG
-      return;
-#endif
+	#ifndef DEBUG
+    return;
+	#endif
 	if (vec.empty())
 	{
 		std::cout << title << std::endl;
@@ -114,7 +114,7 @@ std::string vecToString(std::vector<int> &vec)
 void debug(std::string const &title, std::vector<int> const &vec)
 {
 	#ifndef DEBUG
-      return;
+    return;
 	#endif
 	std::cout << title << std::endl;
 	std::cout << "vec size = " << vec.size() << std::endl;
@@ -223,33 +223,54 @@ void PmergeMe::mergeVec(int &recursion_depth)
 	}
 }
 
+void createOrderJac(std::vector<std::vector<int> > &pend)
+{
+	std::vector<std::vector<int> > ordered;
+
+	size_t n = pend.size();
+	size_t k = 2;
+	while (ordered.size() < n)
+	{
+		size_t lowerBound = jac(k -1);
+		size_t higherBound = std::min(jac(k), n + 1);
+		for (size_t maxValue = higherBound; maxValue > lowerBound; maxValue--)
+			ordered.push_back(pend[maxValue - 2]);
+		k++;
+	}
+	pend = ordered;
+	debug(BMAGENTA "After creating order" RESET, pend);
+}
+
+int test = 0;
+
 template <typename T>
 void insertPend(T &main, T &pend)
 {
 	if (pend.empty())
 		return;
-
+	createOrderJac(pend);
 	while (pend.size())
 	{
 		std::vector<int> elem = pend.front();
 		#ifdef DEBUG
 		std::cout << "Inserting pend: [" << vecToString(elem) << "] into main" << std::endl;
 		#endif
-		size_t lo = 0;
-		size_t hi = main.size();
-
-		while (lo < hi)
+		size_t lowerBound = 0;
+		size_t higherBound = main.size();
+		test = 0;
+		while (lowerBound < higherBound)
 		{
-			size_t mid = (lo + hi) / 2;
+			size_t mid = (lowerBound + higherBound) / 2;
 
 			if (elem.back() > main[mid].back())
-					lo = mid + 1;
+					lowerBound = mid + 1;
 			else
-			hi = mid;
+			higherBound = mid;
+			test++;
 		}
-
-		main.insert(main.begin() + lo, pend[0]);
+		main.insert(main.begin() + lowerBound, pend.front());
 		pend.erase(pend.begin());
+		std::cout << "test = " << test << std::endl;
 	}
 }
 
@@ -298,9 +319,48 @@ void PmergeMe::sortVec(void)
 	debug(BYELLOW "--------AFTER MAKING PAIRS--------" RESET, this->_vector);
 }
 
+void printStart(std::vector<std::vector<int> > &vec)
+{
+	std::cout << "Before: ";
+	for (size_t i = 0; i < vec.size(); ++i)
+	{
+		std::cout << "(";
+		for (size_t j = 0; j < vec[i].size(); ++j)
+		{
+			std::cout << vec[i][j];
+			if (j != vec[i].size() - 1)
+				std::cout << " ";
+		}
+		std::cout << ")";
+		if (i != vec.size() - 1)
+			std::cout << " ";
+	}
+	std::cout << std::endl;
+}
+
+void printResult(std::vector<std::vector<int> > &vec)
+{
+	std::cout << "After: ";
+	for (size_t i = 0; i < vec.size(); ++i)
+	{
+		std::cout << "(";
+		for (size_t j = 0; j < vec[i].size(); ++j)
+		{
+			std::cout << vec[i][j];
+			if (j != vec[i].size() - 1)
+				std::cout << " ";
+		}
+		std::cout << ")";
+		if (i != vec.size() - 1)
+			std::cout << " ";
+	}
+	std::cout << std::endl;
+}
+
 void PmergeMe::start(void)
 {
-	this->sortVec();
-	std::cout << std::endl;
-	// this->sortDeque();
+	printStart(this->_vector);
+	sortVec();
+	// sortDeque();
+	printResult(this->_vector);
 }
