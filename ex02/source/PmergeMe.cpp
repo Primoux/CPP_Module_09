@@ -238,7 +238,6 @@ void createOrderJac(std::vector<std::vector<int> > &pend)
 		k++;
 	}
 	pend = ordered;
-	debug(BMAGENTA "After creating order" RESET, pend);
 }
 
 
@@ -247,7 +246,9 @@ void insertPend(T &main, T &pend)
 {
 	if (pend.empty())
 		return;
+	debug(BGREEN "Before creating order for pend" RESET, pend);
 	createOrderJac(pend);
+	debug(BVIOLET "After creating order" RESET, pend);
 	while (pend.size())
 	{
 		std::vector<int> elem = pend.front();
