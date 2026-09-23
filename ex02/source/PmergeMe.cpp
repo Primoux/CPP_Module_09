@@ -86,11 +86,22 @@ void PmergeMe::start(void)
 	double start = now();
 	sortVector();
 	this->_elapsedVec = now() - start;
-
+	#ifdef DEBUG
+	std::cout << BWHITE "|----------------------------------|" RESET << std::endl;
+	std::cout << BWHITE "|----------END OF VECTOR-----------|" RESET << std::endl;
+	std::cout << BWHITE "|----------------------------------|" RESET << std::endl;
+	std::cout << std::endl;
+	#endif
 	start = now();
 	sortDeque();
 	this->_elapsedDeque = now() - start;
 
+	#ifdef DEBUG
+	std::cout << BWHITE "|----------------------------------|" RESET << std::endl;
+	std::cout << BWHITE "|----------END OF DEQUE------------|" RESET << std::endl;
+	std::cout << BWHITE "|----------------------------------|" RESET << std::endl;
+	std::cout << std::endl;
+	#endif
 	printResult();
 }
 
@@ -117,8 +128,8 @@ static int mergePairs(VecGroups &c, VecGroups &alone)
 		if (c.size() % 2)
 			alone.push_back(c.back());
 		c = next;
-		debug("INSIDE PAIRING", c);
-		debug("Alone", alone);
+		debug(GREEN "INSIDE PAIRING" RESET, c);
+		debug(YELLOW "Alone" RESET, alone);
 	}
 	return depth;
 }
@@ -258,8 +269,8 @@ static int mergePairs(DequeGroups &c, DequeGroups &alone)
 		if (c.size() % 2)
 			alone.push_back(c.back());
 		c = next;
-		debug("INSIDE PAIRING", c);
-		debug("Alone", alone);
+		debug(GREEN "INSIDE PAIRING" RESET, c);
+		debug(YELLOW "Alone" RESET, alone);
 	}
 	return depth;
 }
