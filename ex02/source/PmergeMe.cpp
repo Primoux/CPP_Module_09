@@ -1,16 +1,13 @@
 #include "PmergeMe.hpp"
+#include "debug.hpp"
 #include <sstream>
 #include <iostream>
-#include <utility>
-#include <algorithm>
 #include <stdexcept>
 #include <string>
-#include "color.h"
+#include <algorithm>
+#include <sys/time.h>
 
-
-std::vector<std::vector<int> > aloneVec;
-
-PmergeMe::PmergeMe()
+PmergeMe::PmergeMe() : _elapsedVec(0), _elapsedDeque(0)
 {
 }
 
@@ -23,8 +20,11 @@ PmergeMe& PmergeMe::operator=(const PmergeMe& other)
 {
 	if (this != &other)
 	{
-		this->_deque = other._deque;
+		this->_input = other._input;
 		this->_vector = other._vector;
+		this->_deque = other._deque;
+		this->_elapsedVec = other._elapsedVec;
+		this->_elapsedDeque = other._elapsedDeque;
 	}
 	return *this;
 }
@@ -33,327 +33,343 @@ PmergeMe::~PmergeMe()
 {
 }
 
-size_t jac(size_t depth)
+size_t jac(size_t n)
 {
 	size_t current = 0;
 	size_t prev = 1;
 	size_t prevPrev = 0;
-	if (depth == 0)
+	if (n == 0)
 		return 0;
-	if (depth == 1)
+	if (n == 1)
 		return 1;
-	for (size_t i = 0; i < depth - 1; i++)
+	for (size_t i = 0; i < n - 1; i++)
 	{
-		// std::cout << "Current = " << current << " prev = " << prev << " prevPrev = " << prevPrev << std::endl;
-		current = (prev) + 2 * (prevPrev);
+		current = prev + 2 * prevPrev;
 		prevPrev = prev;
 		prev = current;
 	}
-	return(current);
-}
-
-template <typename T>
-static void debug(std::string const &title, T const &vec)
-{
-	#ifndef DEBUG
-    return;
-	#endif
-	if (vec.empty())
-	{
-		std::cout << title << std::endl;
-		std::cout << BRED "vec is empty" RESET << std::endl;
-		return;
-	}
-	std::cout << title << std::endl;
-	std::cout << "vec size = " << vec.size() << std::endl;
-	std::cout << "vec[0] size = " << vec[0].size() << std::endl;
-	for (size_t j = 0; j < vec.size(); ++j)
-	{
-		std::cout << "(";
-		for (size_t k = 0; k < vec[j].size(); k++)
-		{
-			if (k != 0)
-				std::cout << ", ";
-			std::cout << vec[j][k];
-		}
-		std::cout << ") ";
-	}
-	std::cout << std::endl;
-	if (!aloneVec.empty())
-	{
-		std::cout << "Alone: ";
-		for (size_t j = 0; j < aloneVec.size(); ++j)
-		{
-			std::cout << "(";
-			for (size_t k = 0; k < aloneVec[j].size(); k++)
-			{
-				if (k != 0)
-					std::cout << ", ";
-				std::cout << aloneVec[j][k];
-			}
-			std::cout << ") ";
-		}
-		std::cout << std::endl;
-	}
-	std::cout << std::endl;
-	std::cout << std::endl;
-}
-
-std::string vecToString(std::vector<int> &vec)
-{
-	std::stringstream ss;
-	for (size_t i = 0; i < vec.size(); i++)
-	{
-		ss << vec[i];
-		if (i != vec.size() - 1)
-			ss << " ";
-	}
-	return (ss.str());
-}
-
-void debug(std::string const &title, std::vector<int> const &vec)
-{
-	#ifndef DEBUG
-    return;
-	#endif
-	std::cout << title << std::endl;
-	std::cout << "vec size = " << vec.size() << std::endl;
-	std::cout << "(";
-	for (size_t k = 0; k < vec.size(); k++)
-	{
-		if (k != 0)
-			std::cout << ", ";
-		std::cout << vec[k];
-	}
-	std::cout << ")" << std::endl;
-}
-
-int searchSize(std::vector<std::vector<int> > &vec, size_t size)
-{
-	for (size_t i = 0; i < vec.size(); i++)
-	{
-		if (size == vec[i].size())
-			return (i);
-	}
-	return (-1);
-}
-
-template <typename T>
-static void getWinnerLooser(T &vec, T &vecLooser, T &vecWinner)
-{
-	size_t pairNumber = 1;
-	bool winner = false;
-	size_t i = 0;
-	for (; i < vec.size(); ++i)
-	{
-		#ifdef DEBUG
-			std::cout << (winner ? "winner " : "looser ") << pairNumber << " - [";
-			for (size_t j = 0; j < vec[i].size(); ++j)
-			{
-				std::cout << vec[i][j] << (j < vec[i].size() - 1 ? " " : "");
-			}
-			std::cout << "] => " << ((!(i % 2) && pairNumber != 1) ? RED "PEND" : GREEN "MAIN")<< "\n" RESET;
-		#endif
-		if (i == 0 || winner)
-			vecWinner.push_back(vec[i]);
-		else
-			vecLooser.push_back(vec[i]);
-		winner ^= true;
-
-		if (i % 2)
-			++pairNumber;
-	}
-	int index = searchSize(aloneVec, vec.back().size());
-
-	if (index != - 1)
-	{
-		#ifdef DEBUG
-		std::cout << "looser " << pairNumber << " - [" << vecToString(aloneVec.back());
-		std::cout << "] => " << YELLOW "PEND ALONE" RESET << std::endl;
-		#endif
-		vecLooser.push_back(aloneVec.back());
-		aloneVec.pop_back();
-	}
-	vec.clear();
-
+	return current;
 }
 
 void PmergeMe::parseInput(int argc, char** argv)
 {
-	std::vector<std::vector<int> > input;
 	for (int i = 1; i < argc; ++i)
 	{
 		std::istringstream iss(argv[i]);
 		int value;
 		if (!(iss >> value) || value < 0 || !iss.eof())
-		{
 			throw std::invalid_argument("Invalid input: " + std::string(argv[i]));
-		}
-		std::vector<int> vec;
-		vec.push_back(value);
-		input.push_back(vec);
+		this->_vector.push_back(std::vector<int>(1, value));
+		this->_deque.push_back(std::deque<int>(1, value));
 	}
-	this->_vector = input;
-	std::deque<std::vector<int> > dequeInput(input.begin(), input.end());
-	this->_deque = dequeInput;
+	this->_input = this->_vector;
 }
 
-void PmergeMe::mergeVec(int &recursion_depth)
+void PmergeMe::printResult(void) const
 {
-	for (; this->_vector.size() != 1; recursion_depth++)
-	{
-		std::vector<std::vector<int> > next;
-
-		for (size_t i = 0; i + 1 < this->_vector.size(); i += 2)
-		{
-			std::vector<int> a = this->_vector[i];
-			std::vector<int> b = this->_vector[i + 1];
-
-			if (a.back() > b.back())
-				a.swap(b);
-
-	 		a.insert(a.end(), b.begin(), b.end());
-	 		next.push_back(a);
-		}
-
-		if (this->_vector.size() % 2)
-			aloneVec.push_back(this->_vector.back());
-		this->_vector = next;
-		debug("INSIDE PAIRING", this->_vector);
-	}
+	printFlat("Before:", this->_input);
+	printFlat("After:", this->_vector);
+	// printFlat("After(Deque):", this->_deque);
+	std::cout << "Time to process a range of " << this->_input.size() << " elements with std::vector : " << this->_elapsedVec << " us" << std::endl;
+	std::cout << "Time to process a range of " << this->_input.size() << " elements with std::deque : " << this->_elapsedDeque << " us" << std::endl;
 }
 
-void createOrderJac(std::vector<std::vector<int> > &pend)
+static double now(void)
 {
-	std::vector<std::vector<int> > ordered;
-
-	size_t n = pend.size();
-	size_t k = 2;
-	while (ordered.size() < n)
-	{
-		size_t lowerBound = jac(k -1);
-		size_t higherBound = std::min(jac(k), n + 1);
-		for (size_t maxValue = higherBound; maxValue > lowerBound; maxValue--)
-			ordered.push_back(pend[maxValue - 2]);
-		k++;
-	}
-	pend = ordered;
-}
-
-
-template <typename T>
-void insertPend(T &main, T &pend)
-{
-	if (pend.empty())
-		return;
-	debug(BGREEN "Before creating order for pend" RESET, pend);
-	createOrderJac(pend);
-	debug(BVIOLET "After creating order" RESET, pend);
-	while (pend.size())
-	{
-		std::vector<int> elem = pend.front();
-		#ifdef DEBUG
-		std::cout << "Inserting pend: [" << vecToString(elem) << "] into main" << std::endl;
-		#endif
-		size_t lowerBound = 0;
-		size_t higherBound = main.size();
-		while (lowerBound < higherBound)
-		{
-			size_t mid = (lowerBound + higherBound) / 2;
-
-			if (elem.back() > main[mid].back())
-				lowerBound = mid + 1;
-			else
-				higherBound = mid;
-		}
-		main.insert(main.begin() + lowerBound, pend.front());
-		pend.erase(pend.begin());
-	}
-}
-
-void PmergeMe::makePairsVec(int recursion_depth)
-{
-	for (; recursion_depth > 0; recursion_depth--)
-	{
-		std::vector<std::vector<int> > pairs;
-		for (size_t elem = 0; elem < this->_vector.size(); elem++)
-		{
-			size_t half = this->_vector[elem].size() / 2;
-			std::vector<int> pair1(this->_vector[elem].begin(), this->_vector[elem].begin() + half);
-			std::vector<int> pair2(this->_vector[elem].begin() + half, this->_vector[elem].end());
-			pairs.push_back(pair1);
-			pairs.push_back(pair2);
-
-		}
-		this->_vector = pairs;
-
-		debug(YELLOW "Inside make pairs" RESET, this->_vector);
-		std::vector<std::vector<int> > main;
-		std::vector<std::vector<int> > pend;
-		getWinnerLooser(this->_vector, pend, main);
-		debug(BGREEN "Winner" RESET, main);
-		debug(BRED "Looser" RESET, pend);
-
-		insertPend(main, pend);
-		this->_vector = main;
-		debug(YELLOW "After inserting pend" RESET, this->_vector);
-
-	}
-}
-
-
-
-void PmergeMe::sortVec(void)
-{
-	debug(BGREEN "BEFORE PAIRING" RESET, this->_vector);
-	if (this->_vector.size() < 2)
-		return;
-	int recursion_depth = 0;
-
-	mergeVec(recursion_depth);
-	debug(BGREEN "--------afterMerge--------" RESET, this->_vector);
-	makePairsVec(recursion_depth);
-	debug(BYELLOW "--------AFTER MAKING PAIRS--------" RESET, this->_vector);
-}
-
-void printStart(std::vector<std::vector<int> > &vec)
-{
-	std::cout << "Before: ";
-	for (size_t i = 0; i < vec.size(); ++i)
-	{
-		for (size_t j = 0; j < vec[i].size(); ++j)
-		{
-			std::cout << vec[i][j];
-			if (j != vec[i].size() - 1)
-				std::cout << " ";
-		}
-		if (i != vec.size() - 1)
-			std::cout << " ";
-	}
-	std::cout << std::endl;
-}
-
-void printResult(std::vector<std::vector<int> > &vec)
-{
-	std::cout << "After: ";
-	for (size_t i = 0; i < vec.size(); ++i)
-	{
-		for (size_t j = 0; j < vec[i].size(); ++j)
-		{
-			std::cout << vec[i][j];
-			if (j != vec[i].size() - 1)
-				std::cout << " ";
-		}
-		if (i != vec.size() - 1)
-			std::cout << " ";
-	}
-	std::cout << std::endl;
+	timeval tv;
+	gettimeofday(&tv, NULL);
+	return tv.tv_sec * 1000000.0 + tv.tv_usec;
 }
 
 void PmergeMe::start(void)
 {
-	printStart(this->_vector);
-	sortVec();
-	// sortDeque();
-	printResult(this->_vector);
+	double start = now();
+	sortVector();
+	this->_elapsedVec = now() - start;
+
+	start = now();
+	sortDeque();
+	this->_elapsedDeque = now() - start;
+
+	printResult();
+}
+
+/* ======================================================================== */
+/*                               STD::VECTOR                                */
+/* ======================================================================== */
+
+static int mergePairs(VecGroups &c, VecGroups &alone)
+{
+	int depth = 0;
+	for (; c.size() > 1; ++depth)
+	{
+		VecGroups next;
+		for (size_t i = 0; i + 1 < c.size(); i += 2)
+		{
+			std::vector<int> a = c[i];
+			std::vector<int> b = c[i + 1];
+
+			if (a.back() > b.back())
+				a.swap(b);
+			a.insert(a.end(), b.begin(), b.end());
+			next.push_back(a);
+		}
+		if (c.size() % 2)
+			alone.push_back(c.back());
+		c = next;
+		debug("INSIDE PAIRING", c);
+		debug("Alone", alone);
+	}
+	return depth;
+}
+
+static void splitPairs(VecGroups &c)
+{
+	VecGroups pairs;
+	for (size_t i = 0; i < c.size(); ++i)
+	{
+		size_t half = c[i].size() / 2;
+		pairs.push_back(std::vector<int>(c[i].begin(), c[i].begin() + half));
+		pairs.push_back(std::vector<int>(c[i].begin() + half, c[i].end()));
+	}
+	c = pairs;
+}
+
+static void getWinnerLooser(VecGroups &c, VecGroups &alone, VecGroups &main, VecGroups &pend)
+{
+	size_t pairNumber = 1;
+	bool winner = false;
+	for (size_t i = 0; i < c.size(); ++i)
+	{
+		#ifdef DEBUG
+		std::stringstream label;
+		label << (winner ? "winner " : "looser ") << pairNumber << " - ";
+		debugElem(label.str(), c[i], (!(i % 2) && pairNumber != 1) ? RED "=> PEND" : GREEN "=> MAIN");
+		#endif
+		if (i == 0 || winner)
+			main.push_back(c[i]);
+		else
+			pend.push_back(c[i]);
+		winner ^= true;
+		if (i % 2)
+			++pairNumber;
+	}
+	if (!alone.empty() && alone.back().size() == c.back().size())
+	{
+		debugElem("looser alone - ", alone.back(), YELLOW "=> PEND ALONE");
+		pend.push_back(alone.back());
+		alone.pop_back();
+	}
+	c.clear();
+}
+
+
+static void insertPend(VecGroups &main, VecGroups &pend)
+{
+	if (pend.empty())
+		return;
+	debug(BGREEN "Pend before insertion" RESET, pend);
+	debug(BVIOLET "Main before insertion" RESET, main);
+
+	size_t n = pend.size();
+	bool hasAlone = (n == main.size() - 1);
+	size_t inserted = 0;
+	size_t k = 2;
+	while (inserted < n)
+	{
+		size_t groupStart = jac(k - 1);
+		size_t groupEnd = std::min(jac(k), n + 1);
+		size_t bound = jac(k) + jac(k - 1) - 1;
+		for (size_t maxValue = groupEnd; maxValue > groupStart; maxValue--)
+		{
+			// std::cout << GREEN "bound = " << bound << ", main.size() = " << main.size() << RESET << std::endl;
+			// std::cout << RED "maxValue = " << maxValue << ", groupStart = " << groupStart << ", groupEnd = " << groupEnd << RESET << std::endl;
+
+			size_t index = maxValue - 2;
+			size_t lo = 0;
+			size_t hi = std::min(bound, main.size());
+			if (hasAlone && index == n - 1)
+				hi = main.size();
+			while (lo < hi)
+			{
+				size_t mid = (lo + hi) / 2;
+
+				if (pend[index].back() > main[mid].back())
+					lo = mid + 1;
+				else
+					hi = mid;
+			}
+			main.insert(main.begin() + lo, pend[index]);
+			inserted++;
+		}
+		k++;
+	}
+	pend.clear();
+}
+
+void PmergeMe::sortVector(void)
+{
+	VecGroups &c = this->_vector;
+	if (c.size() < 2)
+		return;
+	VecGroups alone;
+
+	debug(BGREEN "BEFORE PAIRING" RESET, c);
+	int depth = mergePairs(c, alone);
+	debug(BGREEN "--------afterMerge--------" RESET, c);
+	for (; depth > 0; --depth)
+	{
+		splitPairs(c);
+		debug(YELLOW "After spliting pairs" RESET, c);
+
+		VecGroups main;
+		VecGroups pend;
+		getWinnerLooser(c, alone, main, pend);
+		debug(BGREEN "Winner" RESET, main);
+		debug(BRED "Looser" RESET, pend);
+
+		insertPend(main, pend);
+		c = main;
+		debug(YELLOW "After inserting pend" RESET, c);
+	}
+}
+
+
+/* ======================================================================== */
+/*                                STD::DEQUE                                */
+/* ======================================================================== */
+
+static int mergePairs(DequeGroups &c, DequeGroups &alone)
+{
+	int depth = 0;
+	for (; c.size() > 1; ++depth)
+	{
+		DequeGroups next;
+		for (size_t i = 0; i + 1 < c.size(); i += 2)
+		{
+			std::deque<int> a = c[i];
+			std::deque<int> b = c[i + 1];
+
+			if (a.back() > b.back())
+				a.swap(b);
+			a.insert(a.end(), b.begin(), b.end());
+			next.push_back(a);
+		}
+		if (c.size() % 2)
+			alone.push_back(c.back());
+		c = next;
+		debug("INSIDE PAIRING", c);
+		debug("Alone", alone);
+	}
+	return depth;
+}
+
+static void splitPairs(DequeGroups &c)
+{
+	DequeGroups pairs;
+	for (size_t i = 0; i < c.size(); ++i)
+	{
+		size_t half = c[i].size() / 2;
+		pairs.push_back(std::deque<int>(c[i].begin(), c[i].begin() + half));
+		pairs.push_back(std::deque<int>(c[i].begin() + half, c[i].end()));
+	}
+	c = pairs;
+}
+
+static void getWinnerLooser(DequeGroups &c, DequeGroups &alone, DequeGroups &main, DequeGroups &pend)
+{
+	size_t pairNumber = 1;
+	bool winner = false;
+	for (size_t i = 0; i < c.size(); ++i)
+	{
+		#ifdef DEBUG
+		std::stringstream label;
+		label << (winner ? "winner " : "looser ") << pairNumber << " - ";
+		debugElem(label.str(), c[i], (!(i % 2) && pairNumber != 1) ? RED "=> PEND" : GREEN "=> MAIN");
+		#endif
+		if (i == 0 || winner)
+			main.push_back(c[i]);
+		else
+			pend.push_back(c[i]);
+		winner ^= true;
+		if (i % 2)
+			++pairNumber;
+	}
+	if (!alone.empty() && alone.back().size() == c.back().size())
+	{
+		debugElem("looser alone - ", alone.back(), YELLOW "=> PEND ALONE");
+		pend.push_back(alone.back());
+		alone.pop_back();
+	}
+	c.clear();
+}
+
+static void insertPend(DequeGroups &main, DequeGroups &pend)
+{
+	if (pend.empty())
+		return;
+	debug(BGREEN "Pend before insertion" RESET, pend);
+	debug(BVIOLET "Main before insertion" RESET, main);
+
+	size_t n = pend.size();
+	bool hasAlone = (n == main.size() - 1);
+	size_t inserted = 0;
+	size_t k = 2;
+	while (inserted < n)
+	{
+		size_t groupStart = jac(k - 1);
+		size_t groupEnd = std::min(jac(k), n + 1);
+		size_t bound = jac(k) + jac(k - 1) - 1;
+		for (size_t maxValue = groupEnd; maxValue > groupStart; maxValue--)
+		{
+			// std::cout << GREEN "bound = " << bound << ", main.size() = " << main.size() << RESET << std::endl;
+			// std::cout << RED "maxValue = " << maxValue << ", groupStart = " << groupStart << ", groupEnd = " << groupEnd << RESET << std::endl;
+
+			size_t index = maxValue - 2;
+			size_t lo = 0;
+			size_t hi = std::min(bound, main.size());
+			if (hasAlone && index == n - 1)
+				hi = main.size();
+			while (lo < hi)
+			{
+				size_t mid = (lo + hi) / 2;
+
+				if (pend[index].back() > main[mid].back())
+					lo = mid + 1;
+				else
+					hi = mid;
+			}
+			main.insert(main.begin() + lo, pend[index]);
+			inserted++;
+		}
+		k++;
+	}
+	pend.clear();
+}
+
+void PmergeMe::sortDeque(void)
+{
+	DequeGroups &c = this->_deque;
+	if (c.size() < 2)
+		return;
+	DequeGroups alone;
+
+	debug(BGREEN "BEFORE PAIRING" RESET, c);
+	int depth = mergePairs(c, alone);
+	debug(BGREEN "--------afterMerge--------" RESET, c);
+	for (; depth > 0; --depth)
+	{
+		splitPairs(c);
+		debug(YELLOW "After spliting pairs" RESET, c);
+
+		DequeGroups main;
+		DequeGroups pend;
+		getWinnerLooser(c, alone, main, pend);
+		debug(BGREEN "Winner" RESET, main);
+		debug(BRED "Looser" RESET, pend);
+
+		insertPend(main, pend);
+		c = main;
+		debug(YELLOW "After inserting pend" RESET, c);
+	}
 }

@@ -1,15 +1,25 @@
 #ifndef PMERGEME_HPP
 #define PMERGEME_HPP
 
-#include <vector>
 #include <deque>
+#include <vector>
 #include <cstddef>
 #include <string>
 
+typedef std::vector<std::vector<int> >	VecGroups;
+typedef std::deque<std::deque<int> >	DequeGroups;
+
 class PmergeMe {
 	private:
-		std::vector<std::vector<int> > _vector;
-		std::deque<std::vector<int> > _deque;
+		VecGroups	_input;
+		VecGroups	_vector;
+		DequeGroups	_deque;
+		double		_elapsedVec;
+		double		_elapsedDeque;
+
+		void sortVector(void);
+		void sortDeque(void);
+		void printResult(void) const;
 	public:
 		PmergeMe();
 		~PmergeMe();
@@ -17,10 +27,8 @@ class PmergeMe {
 		PmergeMe &operator=(const PmergeMe &other);
 		void parseInput(int argc, char ** argv);
 		void start(void);
-		void sortVec(void);
-		void sortDeque(void);
-		void mergeVec(int &recursion_depth);
-		void makePairsVec(int recursion_depth);
 };
+
+size_t jac(size_t n);
 
 #endif
