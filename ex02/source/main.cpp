@@ -6,7 +6,7 @@
 
 int main (int argc, char **argv)
 {
-	std::cout << std::fixed << std::setprecision(0);
+	std::cout << std::fixed << std::setprecision(3);
 	if (argc < 2)
 	{
 		std::cerr << "Usage: " << argv[0] << " <positive integers>" << std::endl;

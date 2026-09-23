@@ -70,8 +70,8 @@ void PmergeMe::printResult(void) const
 	printFlat("Before:", this->_input);
 	printFlat("After:", this->_vector);
 	// printFlat("After(Deque):", this->_deque);
-	std::cout << "Time to process a range of " << this->_input.size() << " elements with std::vector : " << this->_elapsedVec << " us" << std::endl;
-	std::cout << "Time to process a range of " << this->_input.size() << " elements with std::deque : " << this->_elapsedDeque << " us" << std::endl;
+	std::cout << "Time to process a range of " << this->_input.size() << " elements with std::vector : " << this->_elapsedVec << " us" << " (" << (this->_elapsedVec / 1000000.0) << "seconds)" << std::endl;
+	std::cout << "Time to process a range of " << this->_input.size() << " elements with std::deque : " << this->_elapsedDeque << " us" << " (" << (this->_elapsedDeque / 1000000.0) << "seconds)" << std::endl;
 }
 
 static double now(void)
